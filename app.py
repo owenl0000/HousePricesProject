@@ -178,6 +178,7 @@ with tab1:
             step=1
         )
         st.write(f"Selected Quality: {OverallQual} - {overall_quality_mapping[OverallQual]}")
+    
     with col6:
         overall_cond_mapping = {
             10: "Very Excellent",
@@ -199,6 +200,36 @@ with tab1:
             step=1
         )
         st.write(f"Selected Condition: {OverallCond} - {overall_cond_mapping[OverallCond]}")
+    
+    col7, col8 = st.columns(2)
+    with col7:
+        # ExterQual - Exterior Quality
+        exterqual_mapping = {
+            "Ex": "Excellent",
+            "Gd": "Good",
+            "TA": "Average/Typical",
+            "Fa": "Fair",
+            "Po": "Poor"
+        }
+        exterqual_values = list(exterqual_mapping.keys())
+        exterqual_labels = list(exterqual_mapping.values())
+        selected_exterqual = st.selectbox("Exterior Material Quality", exterqual_labels)
+        ExterQual = exterqual_values[exterqual_labels.index(selected_exterqual)]
+    with col8:
+        functional_mapping = {
+            "Typ": "Typical Functionality",
+            "Min1": "Minor Deductions 1",
+            "Min2": "Minor Deductions 2",
+            "Mod": "Moderate Deductions",
+            "Maj1": "Major Deductions 1",
+            "Maj2": "Major Deductions 2",
+            "Sev": "Severely Damaged",
+            "Sal": "Salvage only"
+        }
+        functional_values = list(functional_mapping.keys())
+        functional_labels = list(functional_mapping.values())
+        selected_functional = st.selectbox("Home Functionality Rating", functional_labels)
+        Functional = functional_values[functional_labels.index(selected_functional)]
     
     st.divider()
     
@@ -305,6 +336,15 @@ with tab3:
 # KitchenAbvGr, KitchenQual, Fireplaces, FireplaceQu, BedroomAbvGr, TotRmsAbvGrd, 
 # MasVnrType, MasVnrArea, ExterQual, Heating, HeatingQc, CentralAir
 with tab4:
+    st.subheader("Rooms", divider="grey")
+    rcol1, rcol2 = st.columns(2)
+    with rcol1:
+        # BedroomAbvGr - Number of bedrooms above basement level
+        BedroomAbvGr = st.number_input("Number of Bedrooms Above Basement Level", min_value=0, max_value=8, value=3, step=1)
+    with rcol2:
+        # TotRmsAbvGrd - Total rooms above grade
+        TotRmsAbvGrd = st.number_input("Total Rooms Above Grade", min_value=2, max_value=14, value=6, step=1)
+    
     st.subheader("Kitchen", divider="grey")
     #Kitchen Above Grade
     #Kitchen Quality
@@ -382,12 +422,31 @@ with tab4:
         selected_fireplacequ = st.selectbox("Fireplace Quality", fireplacequ_labels)
         FireplaceQu = fireplacequ_values[fireplacequ_labels.index(selected_fireplacequ)]
 
+    st.subheader("Masonry Veneer Type", divider="red")
+    mvcol1, mvcol2 = st.columns(2)
+    with mvcol1:
+        masvnrtype_mapping = {
+            "BrkCmn": "Brick Common",
+            "BrkFace": "Brick Face",
+            "CBlock": "Cinder Block",
+            "None": "None",
+            "Stone": "Stone"
+        }
+        masvnrtype_values = list(masvnrtype_mapping.keys())
+        masvnrtype_labels = list(masvnrtype_mapping.values())
+        selected_masvnrtype = st.selectbox("Masonry Veneer Type", masvnrtype_labels)
+        MasVnrType = masvnrtype_values[masvnrtype_labels.index(selected_masvnrtype)]
+
+    with mvcol2:
+        # MasVnrArea - Masonry veneer area in square feet
+        MasVnrArea = st.slider("Masonry Veneer Area (sq ft)", min_value=0, max_value=1500, value=200, step=10)
+
 
 
     
 
 # === Additional Space & Lot Size ===
-# LotFrontage, LotArea, LowQualFunSF, TotalPorchSF(Engineered), PoolArea, HasPool
+# LotFrontage, LotArea, TotalPorchSF(Engineered), PoolArea, HasPool
 with tab5: 
     st.subheader("Lot", divider="grey")
     lotcol1, lotcol2 = st.columns(2)
@@ -407,24 +466,44 @@ with tab5:
     with pcol2:
         PoolArea = st.slider("Pool Area", 0, 750, 0)
 
+    st.subheader("Porch", divider="grey")
+    # Individual Inputs for Each Porch Type
+    porchcol1, porchcol2 = st.columns(2)
+    with porchcol1:
+        WoodDeckSF = st.number_input("Wood Deck Area (sq ft)", min_value=0, max_value=1000, value=0, step=10)
+    with porchcol2:
+        OpenPorchSF = st.number_input("Open Porch Area (sq ft)", min_value=0, max_value=1000, value=0, step=10)
+    
+    porchcol3, porchcol4 = st.columns(2)
+    with porchcol3:  
+        EnclosedPorch = st.number_input("Enclosed Porch Area (sq ft)", min_value=0, max_value=1000, value=0, step=10)
+    with porchcol4:
+        ThreeSsnPorch = st.number_input("Three Season Porch Area (sq ft)", min_value=0, max_value=1000, value=0, step=10)
+ 
+    ScreenPorch = st.number_input("Screen Porch Area (sq ft)", min_value=0, max_value=1000, value=0, step=10)
+
+    # Calculate TotalPorchSF Automatically
+    
 
     
 
 # === Sale & Transaction Details
 # MoSold, SaleType, SaleCondition,
 
+
 # Create user input dictionary and ensure all expected features exist
 #initialize with all expected features set to zero
 TotalSF = FirstFlrSF + SecondFlrSF + BsmtFinSF
 TotalBathrooms = BsmtFullBath + FullBath + 0.5 * (HalfBath + BsmtHalfBath)
 TotalArea = GrLivArea + TotalBsmtSF
-# TotalPorchSF
+TotalPorchSF = WoodDeckSF + OpenPorchSF + EnclosedPorch + ThreeSsnPorch + ScreenPorch
 
 user_input = {feature: 0 for feature in expected_features}
 
 #update with user-selected values
 user_input.update({
     "OverallQual": OverallQual,
+    "OverallCond": OverallCond,
     "TotalArea": TotalArea,
     "TotalSF": TotalSF,
     "HouseAge": HouseAge,
@@ -437,11 +516,13 @@ user_input.update({
     "MSZoning": MSZoning,
     "Neighborhood": Neighborhood,
     #"SaleCondition": SaleCondition,
+    'BsmtUnfSF' : BsmtUnfSF,
     "MSSubClass": ms_subclass,
     "LotFrontage": LotFrontage,
     "LotArea": LotArea,
     "HouseStyle": house_style,
     "BsmtQual": BsmtQual,
+    "BsmtExposure": BsmtExposure,
     "TotalBathrooms": TotalBathrooms,
     "BsmtFinType1": BsmtFinType1,
     "GarageFinish": GarageFinish,
@@ -449,6 +530,14 @@ user_input.update({
     "KitchenQual": KitchenQual,
     "Heating": Heating,
     "HeatingQC": HeatingQC,
+    "CentralAir": CentralAir,
+    "Functional": Functional,
+    "TotRmsAbvGrd": TotRmsAbvGrd,
+    "BedroomAbvGr": BedroomAbvGr,
+    "MasVnrType": MasVnrType,
+    "MasVnrArea": MasVnrArea,
+    "ExterQual": ExterQual,
+    "TotalPorchSF": TotalPorchSF,
 
 })
 
