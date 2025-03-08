@@ -24,7 +24,7 @@ This is a Streamlit-based web application that allows users to input property de
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/owenl0000/HousePricesProject.git
-cd house-price-prediction
+cd HousePricesProject
 ```
 
 ### 2. Install Dependencies
