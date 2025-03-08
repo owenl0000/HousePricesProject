@@ -23,7 +23,7 @@ This is a Streamlit-based web application that allows users to input property de
 ## Setup Instructions
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/house-price-prediction.git
+git clone https://github.com/owenl0000/HousePricesProject.git
 cd house-price-prediction
 ```
 
