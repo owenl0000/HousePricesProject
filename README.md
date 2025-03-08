@@ -3,7 +3,7 @@
 This is a Streamlit-based web application that allows users to input property details and receive a predicted house price based on a trained machine learning model.
 
 ## Deployment Link
-[Click here to access the deployed application](https://housepricespredictionproject-kaggle-owenl0000.streamlit.app/)
+[Deployment Website Link](https://housepricespredictionproject-kaggle-owenl0000.streamlit.app/)
 
 
 ## Features
