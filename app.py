@@ -19,22 +19,25 @@ with open('expected_features.pkl', 'rb') as f:
 st.title("🏡 Real Estate House Price Prediction in Ames, Iowa")
 st.write("Enter house details to estimate the price.")
 
+# Create a placeholder for the predicted price at the top of the app
+predicted_price_placeholder = st.empty()
+
 # === Property Details === 
 # MSSubClass, MSZoning, Neighborhood, HouseStyle, OverallQual, OverallCond, Functional
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🏠 Property Details", "📅 Home Age", "🚗 Garage & Basement", "🔥 Interior & Features", "📏 Additional Space", "💰 Sale Details"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 Property Details", "📅 Home Age", "🚗 Garage & Basement", "🔥 Interior & Features", "📏 Additional Space"])
 with tab1:
     st.write("Property Type & Location")
     col1, col2 = st.columns(2)
     house_styles_mapping = {
-            "1Story": "1-Story Home",
-            "1.5Fin": "1.5-Story: 2nd Level Finished",
-            "1.5Unf": "1.5-Story: 2nd Level Unfinished",
-            "2Story": "2-Story Home",
-            "2.5Fin": "2.5-Story: 2nd Level Finished",
-            "2.5Unf": "2.5-Story: 2nd Level Unfinished",
-            "SFoyer": "Split Foyer",
-            "SLvl": "Split Level"
+        "1Story": "1-Story Home",
+        "1.5Fin": "1.5-Story: 2nd Level Finished",
+        "1.5Unf": "1.5-Story: 2nd Level Unfinished",
+        "2Story": "2-Story Home",
+        "2.5Fin": "2.5-Story: 2nd Level Finished",
+        "2.5Unf": "2.5-Story: 2nd Level Unfinished",
+        "SFoyer": "Split Foyer",
+        "SLvl": "Split Level"
     }
     # Mapping of MSSubClass to valid HouseStyles
     # Allowed MSSubClass per HouseStyle
@@ -50,28 +53,40 @@ with tab1:
     }
     
     ms_subclass_mapping = {
-            20: "1-Story (Modern)",
-            30: "1-Story (Old, Pre-1946)",
-            40: "1-Story + Attic",
-            45: "1.5-Story (Unfinished)",
-            50: "1.5-Story (Finished)",
-            60: "2-Story (Modern)",
-            70: "2-Story (Old, Pre-1946)",
-            75: "2.5-Story",
-            80: "Split-Level",
-            85: "Split Foyer",
-            90: "Duplex",
-            120: "1-Story PUD",
-            150: "1.5-Story PUD",
-            160: "2-Story PUD",
-            180: "Multi-Level PUD",
-            190: "2-Family Conversion",
+        20: "1-Story (Modern)",
+        30: "1-Story (Old, Pre-1946)",
+        40: "1-Story + Attic",
+        45: "1.5-Story (Unfinished)",
+        50: "1.5-Story (Finished)",
+        60: "2-Story (Modern)",
+        70: "2-Story (Old, Pre-1946)",
+        75: "2.5-Story",
+        80: "Split-Level",
+        85: "Split Foyer",
+        90: "Duplex",
+        120: "1-Story PUD",
+        150: "1.5-Story PUD",
+        160: "2-Story PUD",
+        180: "Multi-Level PUD",
+        190: "2-Family Conversion",
+    }
+
+    house_style_to_default_subclass = {
+        "1Story": 20,  # 1-Story (Modern)
+        "1.5Fin": 50,  # 1.5-Story (Finished)
+        "1.5Unf": 45,  # 1.5-Story (Unfinished)
+        "2Story": 60,  # 2-Story (Modern)
+        "2.5Fin": 75,  # 2.5-Story
+        "2.5Unf": 75,  # 2.5-Story
+        "SFoyer": 85,  # Split Foyer
+        "SLvl": 80,    # Split-Level
     }
     
     with col1:
         house_styles_values = list(house_styles_mapping.keys())
         house_styles_labels = list(house_styles_mapping.values())
-        selected_style = st.selectbox("Select House Style", house_styles_labels)
+        house_styles_default_index = house_styles_labels.index("1-Story Home")
+        selected_style = st.selectbox("Select House Style", house_styles_labels, index=house_styles_default_index)
         house_style = house_styles_values[house_styles_labels.index(selected_style)]
         
     with col2:                                                  
@@ -79,7 +94,12 @@ with tab1:
         allowed_subclass_values = house_style_to_subclass.get(house_style, [])
         allowed_subclass_labels = [ms_subclass_mapping[val] for val in allowed_subclass_values]
 
-        selected_subclass = st.selectbox("Select Property Type", allowed_subclass_labels)
+        # Get the default MSSubClass for the selected HouseStyle
+        default_subclass = house_style_to_default_subclass.get(house_style, allowed_subclass_values[0])
+        default_subclass_label = ms_subclass_mapping[default_subclass]
+        default_subclass_index = allowed_subclass_labels.index(default_subclass_label)
+
+        selected_subclass = st.selectbox("Select Property Type", allowed_subclass_labels, index=default_subclass_index)
         ms_subclass = allowed_subclass_values[allowed_subclass_labels.index(selected_subclass)]
 
     col3, col4 = st.columns(2)    
@@ -96,7 +116,8 @@ with tab1:
         }
         mszoning_values = list(mszoning_mapping.keys())
         mszoning_labels = list(mszoning_mapping.values())
-        selected_MSZoning = st.selectbox("Select Zoning", mszoning_labels)
+        mszoning_default_index =  mszoning_labels.index("Residential Low Density")
+        selected_MSZoning = st.selectbox("Select Zoning", mszoning_labels, index=mszoning_default_index)
         MSZoning = mszoning_values[mszoning_labels.index(selected_MSZoning)]
     with col4:
         neighborhood_mapping = {
@@ -112,7 +133,7 @@ with tab1:
             "IDOTRR": "Iowa DOT and Rail Road",
             "MeadowV": "Meadow Village",
             "Mitchel": "Mitchell",
-            "Names": "North Ames",
+            "NAmes": "North Ames",
             "NoRidge": "Northridge",
             "NPkVill": "Northpark Villa",
             "NridgHt": "Northridge Heights",
@@ -128,30 +149,43 @@ with tab1:
         }
         neighborhood_values = list(neighborhood_mapping.keys())
         neighborhood_labels = list(neighborhood_mapping.values())
-        selected_neighborhood = st.selectbox("Select Neighborhood", neighborhood_labels)
+        neighborhood_default_index = neighborhood_labels.index("North Ames")
+        selected_neighborhood = st.selectbox("Select Neighborhood", neighborhood_labels, index=neighborhood_default_index)
         Neighborhood = neighborhood_values[neighborhood_labels.index(selected_neighborhood)]
     
     
     st.divider()
     st.write("Living Area")
+    
     col7, col8, col9 = st.columns(3)
     #will be more specific for these features later
     # TotalSF(Engineered) = 1stFlrSF, 2ndFlrSF, BsmtFinSF1, BsmFinSF2
     # Total Area(Engineered) = GrLivArea(Any Area that is above ground), TotalBsmtSF
     # TotalBathrooms(Engineered) = BsmtFullBath, FullBath, 0.5 * HalfBath, BsmtHalfBath
     with col7:
-        GrLivArea = st.number_input("Above Grade Living Area (sq ft)", 100, 10000, 1500) 
+        GrLivArea = st.number_input("Above Ground Living Area (sq ft)", 100, 10000, 1500) 
+
+    
     with col8:
-        FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, 5000, 1150)
+        if house_style == "1Story":
+            # For 1-story houses, FirstFlrSF must equal GrLivArea
+            FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, 10000, GrLivArea, disabled=True)
+        else:
+            # For multi-story houses, allow the user to input FirstFlrSF
+            FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, GrLivArea - 100, 800)
     with col9:
-        SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, 350)
+        if house_style == "1Story":
+            SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, 0, disabled=True)
+        else:
+            SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, GrLivArea-FirstFlrSF, GrLivArea - FirstFlrSF, disabled=True)
+            
+
 
     col10, col11 = st.columns(2)
     with col10:
-        FullBath = st.number_input("Number of Full Bathrooms", 0, 3, 1, step=1) 
+        FullBath = st.slider("Number of Full Bathrooms", 0, 3, 1, step=1) 
     with col11:    
-        HalfBath = st.number_input("Number of Half Bathrooms", 0, 2, 1, step=1)
-    #Functional - Home Functionality Rating
+        HalfBath = st.slider("Number of Half Bathrooms", 0, 2, 1, step=1)
     
     st.divider()
     st.write("Quality & Condition")
@@ -213,7 +247,8 @@ with tab1:
         }
         exterqual_values = list(exterqual_mapping.keys())
         exterqual_labels = list(exterqual_mapping.values())
-        selected_exterqual = st.selectbox("Exterior Material Quality", exterqual_labels)
+        exterqual_default_index = exterqual_labels.index("Average/Typical")
+        selected_exterqual = st.selectbox("Exterior Material Quality", exterqual_labels, index=exterqual_default_index)
         ExterQual = exterqual_values[exterqual_labels.index(selected_exterqual)]
     with col8:
         functional_mapping = {
@@ -228,7 +263,8 @@ with tab1:
         }
         functional_values = list(functional_mapping.keys())
         functional_labels = list(functional_mapping.values())
-        selected_functional = st.selectbox("Home Functionality Rating", functional_labels)
+        functional_default_index = functional_labels.index("Typical Functionality")
+        selected_functional = st.selectbox("Home Functionality Rating", functional_labels, index=functional_default_index)
         Functional = functional_values[functional_labels.index(selected_functional)]
     
     st.divider()
@@ -242,18 +278,15 @@ with tab2:
     current_year = datetime.datetime.now().year
 
     #Streamlit input for year built and calculate HouseAge
-    yearBuilt = st.number_input("Year Built", 1800, current_year, 2025)
+    yearBuilt = st.number_input("Year Built", 1800, current_year, 1973)
     HouseAge = current_year - yearBuilt
     st.write(f"House Age: {HouseAge} years")
     #Streamlit input for year remodeling age and calculate for HouseRemodelAge
-    yearRemodAdd = st.number_input("Year of Remodeling", 1800, current_year, 2025)
+    yearRemodAdd = st.number_input("Year of Remodeling", 1800, current_year, 1994)
     HouseRemodelAge = current_year - yearRemodAdd
     st.write(f"House Remodeling Age: {HouseRemodelAge} years")
-    
-        #SaleCondition = st.selectbox("Sale Condition", ["Normal", "Abnorml", "Partial", "AdjLand", "Alloca"])
 
-        #PoolArea = st.number_input("Pool Area (sq ft)", 0, 1000, 0)
-        #HasPool = st.radio("Has Pool?", [0, 1], index=0)
+    st.divider()
 
 # === Garage & Basement ===
 # GarageFinish, GarageCars, BsmtQual, BsmtExposure, BsmtFinType1, BsmtUnfSF
@@ -262,7 +295,7 @@ with tab3:
     bscol1, bscol2, bscol3 = st.columns(3)
     with bscol1:
         #Total Basement Area
-        TotalBsmtSF = st.number_input("Total Basement Area", 0, 7500, 1000)
+        TotalBsmtSF = st.number_input("Total Basement Area (sq ft)", 0, 7500, 1000)
         #Height of the Basement
         bsmtqual_mapping = {
             "Ex": "Excellent (100+ inches)",
@@ -274,27 +307,68 @@ with tab3:
         }
         bsmtqual_values = list(bsmtqual_mapping.keys())
         bsmtqual_labels = list(bsmtqual_mapping.values())
-        selected_bsmtqual = st.selectbox("Height of the Basement", bsmtqual_labels)
+        #default
+        # Filter options based on TotalBsmtSF
+        if TotalBsmtSF == 0:
+            # Only show "No Basement" if TotalBsmtSF is 0
+            bsmtqual_options = {"NA": "No Basement"}
+        else:
+            # Exclude "No Basement" if TotalBsmtSF is greater than 0
+            bsmtqual_options = {k: v for k, v in bsmtqual_mapping.items() if k != "NA"}
+
+        # Convert filtered options to lists
+        bsmtqual_values = list(bsmtqual_options.keys())
+        bsmtqual_labels = list(bsmtqual_options.values())
+        # If TotalBsmtSF is 0, set default to "No Basement"
+        if TotalBsmtSF == 0:
+            bsmtqual_default_index = bsmtqual_labels.index("No Basement")
+        else:
+            bsmtqual_default_index = bsmtqual_labels.index("Typical (80-89 inches)")
+
+       
+
+        selected_bsmtqual = st.selectbox("Height of the Basement", bsmtqual_labels, index=bsmtqual_default_index)
         BsmtQual = bsmtqual_values[bsmtqual_labels.index(selected_bsmtqual)]
 
-    with bscol2:
-        BsmtFinSF = st.number_input("Basement Finished Area", 0, 7000, 500)
-        BsmtUnfSF = st.number_input("Basement Unfinished Area", 0, 2500, 500)
+        # Display a warning if the selection is invalid
+        if TotalBsmtSF == 0 and BsmtQual != "NA":
+            st.warning("You cannot select a basement height when there is no basement. Please select 'No Basement'.")
+        elif TotalBsmtSF > 0 and BsmtQual == "NA":
+            st.warning("You cannot select 'No Basement' when there is a basement. Please choose a valid basement height.")
+
 
     with bscol3:
+        BsmtFinSF = st.number_input("Basement Finished Area (sq ft)", 0, TotalBsmtSF, min(1000, TotalBsmtSF))
+        BsmtUnfSF = st.number_input("Basement Unfinished Area (sq ft)", 0, TotalBsmtSF-BsmtFinSF, TotalBsmtSF-BsmtFinSF) 
+
+    with bscol2:
         bsmtfintype_mapping = {
             "GLQ": "Good Living Quarters",
             "ALQ": "Average Living Quarters",
             "BLQ": "Below Average Living Quarters",
             "Rec": "Average Rec Room",
             "LwQ": "Low Quality",
-            "Unf": "Unfinshed",
+            "Unf": "Unfinished",
             "NA": "No Basement",
         }
+
+        if TotalBsmtSF == 0:
+            # Only show "No Basement" if TotalBsmtSF is 0
+            bsmtfintype_options = {"NA": "No Basement"}
+        else:
+            # Exclude "No Basement" if TotalBsmtSF is greater than 0
+            bsmtfintype_options = {k: v for k, v in bsmtfintype_mapping.items() if k != "NA"}
     
-        bsmtfintype_values = list(bsmtfintype_mapping.keys())
-        bsmtfintype_labels = list(bsmtfintype_mapping.values())
-        selected_bsmtfintype = st.selectbox("Rating of Finished Basement Area", bsmtfintype_labels)
+        bsmtfintype_values = list(bsmtfintype_options.keys())
+        bsmtfintype_labels = list(bsmtfintype_options.values())
+        #Default value
+        # If TotalBsmtSF, BsmtFinSF, or BsmtUnfSF is 0, set default to "No Basement"
+        if TotalBsmtSF == 0:
+            bsmtfintype_default_index = bsmtfintype_labels.index("No Basement")
+        else:
+            bsmtfintype_default_index = bsmtfintype_labels.index("Good Living Quarters")
+        
+        selected_bsmtfintype = st.selectbox("Rating of Finished Basement Area", bsmtfintype_labels, index=bsmtfintype_default_index)
         BsmtFinType1 = bsmtfintype_values[bsmtfintype_labels.index(selected_bsmtfintype)]
 
         bsmtexposure_mapping = {
@@ -304,33 +378,66 @@ with tab3:
             "No": "No Exposure",
             "NA": "No Basement",
         }
+
+        if TotalBsmtSF == 0:
+            # Only show "No Basement" if TotalBsmtSF is 0
+            bsmtexposure_options = {"NA": "No Basement"}
+        else:
+            # Exclude "No Basement" if TotalBsmtSF is greater than 0
+            bsmtexposure_options = {k: v for k, v in bsmtexposure_mapping.items() if k != "NA"}
     
-        bsmtexposure_values = list(bsmtexposure_mapping.keys())
-        bsmtexposure_labels = list(bsmtexposure_mapping.values())
-        selected_bsmtexposure = st.selectbox("Rating of Walkout/Garden Level Walls", bsmtexposure_labels)
+        bsmtexposure_values = list(bsmtexposure_options.keys())
+        bsmtexposure_labels = list(bsmtexposure_options.values())
+
+        # If TotalBsmtSF, BsmtFinSF, or BsmtUnfSF is 0, set default to "No Basement"
+        if TotalBsmtSF == 0:
+            bsmtexposure_default_index = bsmtexposure_labels.index("No Basement")
+        else:
+            bsmtexposure_default_index = bsmtexposure_labels.index("No Exposure")
+
+        selected_bsmtexposure = st.selectbox("Rating of Walkout/Garden Level Walls", bsmtexposure_labels, index=bsmtexposure_default_index)
         BsmtExposure = bsmtexposure_values[bsmtexposure_labels.index(selected_bsmtexposure)]
 
     bscol4, bscol5 = st.columns(2)
     with bscol4:
-        BsmtFullBath = st.number_input("Full Bathrooms in Basement", 0, 3, 1, step=1)
+        if TotalBsmtSF == 0:
+            BsmtFullBath = st.number_input("Full Bathrooms in Basement", 0, 0, 0, step=0)
+        else:
+            BsmtFullBath = st.number_input("Full Bathrooms in Basement", 0, 3, 1, step=1)
     with bscol5:
-        BsmtHalfBath = st.number_input("Half Bathrooms in Basement", 0, 2, 1, step=1)
+        if TotalBsmtSF == 0:
+            BsmtHalfBath = st.number_input("Half Bathrooms in Basement", 0, 0, 0, step=0)
+        else:
+            BsmtHalfBath = st.number_input("Half Bathrooms in Basement", 0, 2, 0, step=1)
+
+    if TotalBsmtSF == 0:
+        st.write("To get more options, please enter a value for Total Basement Area.")
 
     st.subheader("Garage", divider="grey")
 
     garagefinish_mapping = {
-            "Fin": "Finished",
-            "RFn": "Rough Finished",
-            "Unf": "Unfinished",
-            "NA": "No Garage",
+        "Fin": "Finished",
+        "RFn": "Rough Finished",
+        "Unf": "Unfinished",
+        "NA": "No Garage",
     }
+
     
     garagefinish_values = list(garagefinish_mapping.keys())
     garagefinish_labels = list(garagefinish_mapping.values())
-    selected_garagefinish = st.selectbox("Garage's Finish", garagefinish_labels)
-    GarageFinish = garagefinish_values[garagefinish_labels.index(selected_garagefinish)]
 
-    GarageCars = st.slider("Garage Car Capacity", 0, 5, 2)
+    #Default value
+    garagefinish_default_index = garagefinish_labels.index("Unfinished")
+
+    #display
+    selected_garagefinish = st.selectbox("Garage's Finish", garagefinish_labels, index=garagefinish_default_index)
+    GarageFinish = garagefinish_values[garagefinish_labels.index(selected_garagefinish)]
+    if GarageFinish == "NA":
+        GarageCars = st.slider("Garage Car Capacity", 0, 5, 0, disabled=True)
+    else:
+        GarageCars = st.slider("Garage Car Capacity", 0, 5, 2)
+
+    st.divider()
 
 # === Interior & Features ===
 # KitchenAbvGr, KitchenQual, Fireplaces, FireplaceQu, BedroomAbvGr, TotRmsAbvGrd, 
@@ -340,10 +447,10 @@ with tab4:
     rcol1, rcol2 = st.columns(2)
     with rcol1:
         # BedroomAbvGr - Number of bedrooms above basement level
-        BedroomAbvGr = st.number_input("Number of Bedrooms Above Basement Level", min_value=0, max_value=8, value=3, step=1)
+        BedroomAbvGr = st.slider("Number of Bedrooms Above Basement Level", min_value=0, max_value=8, value=2, step=1)
     with rcol2:
         # TotRmsAbvGrd - Total rooms above grade
-        TotRmsAbvGrd = st.number_input("Total Rooms Above Grade", min_value=2, max_value=14, value=6, step=1)
+        TotRmsAbvGrd = st.slider("Total Rooms Above Ground", min_value=2, max_value=14, value=6, step=1)
     
     st.subheader("Kitchen", divider="grey")
     #Kitchen Above Grade
@@ -364,7 +471,8 @@ with tab4:
     
         kitchenqual_values = list(kitchenqual_mapping.keys())
         kitchenqual_labels = list(kitchenqual_mapping.values())
-        selected_kitchenqual = st.selectbox("Kitchen Quality", kitchenqual_labels)
+        kitchenqual_default_index = kitchenqual_labels.index("Typical/Average")
+        selected_kitchenqual = st.selectbox("Kitchen Quality", kitchenqual_labels, index=kitchenqual_default_index)
         KitchenQual = kitchenqual_values[kitchenqual_labels.index(selected_kitchenqual)]
     
     st.subheader("Heating/Air", divider="grey")
@@ -383,7 +491,8 @@ with tab4:
     
         heating_values = list(heating_mapping.keys())
         heating_labels = list(heating_mapping.values())
-        selected_heating = st.selectbox("Heating", heating_labels)
+        heating_default_index = heating_labels.index("Gas Forced Warm Air Furnace")
+        selected_heating = st.selectbox("Heating", heating_labels, index=heating_default_index)
         Heating = heating_values[heating_labels.index(selected_heating)]
     
     with hcol2:
@@ -397,17 +506,17 @@ with tab4:
 
         heatingqc_values = list(heatingqc_mapping.keys())
         heatingqc_labels = list(heatingqc_mapping.values())
-        selected_heatingqc = st.selectbox("Heating Quality", heatingqc_labels)
+        heatingqc_default_index = heatingqc_labels.index("Typical/Average")
+        selected_heatingqc = st.selectbox("Heating Quality", heatingqc_labels, index=heatingqc_default_index)
         HeatingQC = heatingqc_values[heatingqc_labels.index(selected_heatingqc)]
 
     with hcol3:
         air_option = st.radio("Central Air Conditioning?", ["Yes", "No"], index=1)
         CentralAir = 1 if air_option == "Yes" else 0
 
+    st.subheader('Fireplace', divider="red")
     fcol1, fcol2 = st.columns(2)
     with fcol1:
-        Fireplaces = st.slider("Number of Fireplaces", 0, 3, 0)
-    with fcol2:
         fireplacequ_mapping = {
             "Ex": "Excellent - Exceptional Masonry Fireplace",
             "Gd": "Good - Masonry Fireplace in main level",
@@ -419,8 +528,16 @@ with tab4:
 
         fireplacequ_values = list(fireplacequ_mapping.keys())
         fireplacequ_labels = list(fireplacequ_mapping.values())
-        selected_fireplacequ = st.selectbox("Fireplace Quality", fireplacequ_labels)
+        fireplacequ_default_index = fireplacequ_labels.index("No Fireplace")
+        selected_fireplacequ = st.selectbox("Fireplace Quality", fireplacequ_labels, index=fireplacequ_default_index)
         FireplaceQu = fireplacequ_values[fireplacequ_labels.index(selected_fireplacequ)]
+
+    with fcol2:
+        if FireplaceQu == 'NA':
+            Fireplaces = st.slider("Number of Fireplaces", 0, 3, 0, disabled=True)
+        else:
+            Fireplaces = st.slider("Number of Fireplaces", 0, 3, 1)
+        
 
     st.subheader("Masonry Veneer Type", divider="red")
     mvcol1, mvcol2 = st.columns(2)
@@ -429,17 +546,23 @@ with tab4:
             "BrkCmn": "Brick Common",
             "BrkFace": "Brick Face",
             "CBlock": "Cinder Block",
+            "Stone": "Stone",
             "None": "None",
-            "Stone": "Stone"
         }
         masvnrtype_values = list(masvnrtype_mapping.keys())
         masvnrtype_labels = list(masvnrtype_mapping.values())
-        selected_masvnrtype = st.selectbox("Masonry Veneer Type", masvnrtype_labels)
+        masvnrtype_default_index = masvnrtype_labels.index("None")
+        selected_masvnrtype = st.selectbox("Masonry Veneer Type", masvnrtype_labels, index=masvnrtype_default_index)
         MasVnrType = masvnrtype_values[masvnrtype_labels.index(selected_masvnrtype)]
 
     with mvcol2:
         # MasVnrArea - Masonry veneer area in square feet
-        MasVnrArea = st.slider("Masonry Veneer Area (sq ft)", min_value=0, max_value=1500, value=200, step=10)
+        if MasVnrType == "None":
+            MasVnrArea = st.slider("Masonry Veneer Area (sq ft)", min_value=0, max_value=1500, value=0, step=10, disabled=True)
+        else:
+            MasVnrArea = st.slider("Masonry Veneer Area (sq ft)", min_value=0, max_value=1500, value=180, step=10)
+
+    st.divider()
 
 
 
@@ -459,12 +582,17 @@ with tab5:
 
     pcol1, pcol2 = st.columns(2)
     with pcol1:
-        pool_option = st.radio("Has Pool?", ["Yes", "No"], index=1)
+        pool_option = st.radio("Is there a Pool?", ["Yes", "No"], index=1)
         HasPool = 1 if pool_option == "Yes" else 0
        
 
     with pcol2:
-        PoolArea = st.slider("Pool Area", 0, 750, 0)
+         # Pool Area slider
+        if pool_option == "Yes":
+            PoolArea = st.slider("Pool Area (sq ft)", 0, 750, 500)
+        else:
+            # Disable the slider but keep it visible
+            PoolArea = st.slider("Pool Area (sq ft)", 0, 750, 0, disabled=True)
 
     st.subheader("Porch", divider="grey")
     # Individual Inputs for Each Porch Type
@@ -482,6 +610,8 @@ with tab5:
  
     ScreenPorch = st.number_input("Screen Porch Area (sq ft)", min_value=0, max_value=1000, value=0, step=10)
 
+    st.divider()
+
     # Calculate TotalPorchSF Automatically
     
 
@@ -493,7 +623,7 @@ with tab5:
 
 # Create user input dictionary and ensure all expected features exist
 #initialize with all expected features set to zero
-TotalSF = FirstFlrSF + SecondFlrSF + BsmtFinSF
+TotalSF = FirstFlrSF + SecondFlrSF + BsmtFinSF + BsmtUnfSF
 TotalBathrooms = BsmtFullBath + FullBath + 0.5 * (HalfBath + BsmtHalfBath)
 TotalArea = GrLivArea + TotalBsmtSF
 TotalPorchSF = WoodDeckSF + OpenPorchSF + EnclosedPorch + ThreeSsnPorch + ScreenPorch
@@ -549,7 +679,7 @@ st.write(user_input_df)
 #st.write(processed_features)
 # === Live Price Prediction ===
 predicted_price = stack_model.predict(processed_features)
-st.success(f"💰 The estimated house price is **${predicted_price[0]:,.2f}**")
+predicted_price_placeholder.success(f"💰 The estimated house price is **${predicted_price[0]:,.2f}**")
 
 
 # === House Visualization (Simple Representation) ===
