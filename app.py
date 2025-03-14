@@ -167,14 +167,18 @@ with tab1:
 
     
     with col8:
-        if house_style == "1Story":
+        if house_style == "1Story" and ms_subclass == 40:
+            FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, GrLivArea-100, 1100)
+        elif house_style == "1Story":
             # For 1-story houses, FirstFlrSF must equal GrLivArea
             FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, 10000, GrLivArea, disabled=True)
         else:
             # For multi-story houses, allow the user to input FirstFlrSF
             FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, GrLivArea - 100, 800)
     with col9:
-        if house_style == "1Story":
+        if house_style == "1Story" and ms_subclass == 40:
+            SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, GrLivArea - FirstFlrSF,)
+        elif house_style == "1Story":
             SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, 0, disabled=True)
         else:
             SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, GrLivArea-FirstFlrSF, GrLivArea - FirstFlrSF, disabled=True)
@@ -675,7 +679,7 @@ user_input.update({
 user_input_df = pd.DataFrame([user_input])
 # Apply preprocessing to handle categorical encoding
 processed_features = pipeline.transform(user_input_df)
-st.write(user_input_df)
+#st.write(user_input_df)
 #st.write(processed_features)
 # === Live Price Prediction ===
 predicted_price = stack_model.predict(processed_features)
