@@ -12,7 +12,7 @@ st.set_page_config(layout="wide")
 # Load the trained stacking regressor model from the pickle file
 @st.cache_resource
 def load_model():
-    with open('stacking_model.pkl', 'rb') as f:
+    with open('stacking_model1.pkl', 'rb') as f:
         return pickle.load(f)
 
 stack_model = load_model()
@@ -20,7 +20,7 @@ stack_model = load_model()
 # Load the preprocessing pipeline
 @st.cache_resource
 def load_pipeline():
-    with open('preprocessing_pipeline.pkl', 'rb') as f:
+    with open('preprocessing_pipeline1.pkl', 'rb') as f:
         return pickle.load(f)
 
 pipeline = load_pipeline()
@@ -28,7 +28,7 @@ pipeline = load_pipeline()
 # Load the expected feature names
 @st.cache_data
 def load_expected_features():
-    with open('expected_features.pkl', 'rb') as f:
+    with open('expected_features1.pkl', 'rb') as f:
         return pickle.load(f)
 
 expected_features = load_expected_features()
@@ -193,17 +193,17 @@ with webcol1:
                 FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, GrLivArea-100, 1100)
             elif house_style == "1Story":
                 # For 1-story houses, FirstFlrSF must equal GrLivArea
-                FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, 10000, GrLivArea, disabled=True)
+                FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, 10000, GrLivArea, disabled=True, help="Change 1-Story to access this value")
             else:
                 # For multi-story houses, allow the user to input FirstFlrSF
                 FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, GrLivArea - 100, 800)
         with col9:
             if house_style == "1Story" and ms_subclass == 40:
-                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, GrLivArea - FirstFlrSF,)
+                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, GrLivArea - FirstFlrSF , help="This value is calculated Living Area - First Floor")
             elif house_style == "1Story":
-                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, 0, disabled=True)
+                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, 0, disabled=True, help="This value is calculated Living Area - First Floor")
             else:
-                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, GrLivArea-FirstFlrSF, GrLivArea - FirstFlrSF, disabled=True)
+                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, GrLivArea-FirstFlrSF, GrLivArea - FirstFlrSF, disabled=True, help="This value is calculated Living Area - First Floor")
                 
 
 
@@ -819,8 +819,7 @@ with webcol2:
         st.write("Enter house details to estimate the price.")
         
         # Predict the price (returns an array)
-        # Replace this with your actual prediction logic
-        predicted_price = stack_model.predict(processed_features)  # Use your actual prediction logic
+        predicted_price = stack_model.predict(processed_features) 
 
         # Ensure predicted_price is a scalar
         if isinstance(predicted_price, (np.ndarray, list)):
