@@ -6,20 +6,36 @@ import datetime
 from scipy.stats import percentileofscore
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-# Load the trained stacking regressor model from the pickle file
-with open('stacking_model.pkl', 'rb') as f:
-    stack_model = pickle.load(f)
-
-with open('preprocessing_pipeline.pkl', 'rb') as f:
-    pipeline = pickle.load(f)  # Load the saved preprocessing pipeline
-# Define the feature names that the model expects (update this list to match your training features)
-
-with open('expected_features.pkl', 'rb') as f:
-    expected_features = pickle.load(f)  # Load the expected feature names
+import altair as alt
 
 st.set_page_config(layout="wide")
+# Load the trained stacking regressor model from the pickle file
+@st.cache_resource
+def load_model():
+    with open('stacking_model.pkl', 'rb') as f:
+        return pickle.load(f)
+
+stack_model = load_model()
+
+# Load the preprocessing pipeline
+@st.cache_resource
+def load_pipeline():
+    with open('preprocessing_pipeline.pkl', 'rb') as f:
+        return pickle.load(f)
+
+pipeline = load_pipeline()
+
+# Load the expected feature names
+@st.cache_data
+def load_expected_features():
+    with open('expected_features.pkl', 'rb') as f:
+        return pickle.load(f)
+
+expected_features = load_expected_features()
+
+
 # Streamlit UI
+
 st.title("🏡 Real Estate House Price Prediction in Ames, Iowa")
 
 webcol1, webcol2 = st.columns([2, 1])
@@ -169,7 +185,7 @@ with webcol1:
         # Total Area(Engineered) = GrLivArea(Any Area that is above ground), TotalBsmtSF
         # TotalBathrooms(Engineered) = BsmtFullBath, FullBath, 0.5 * HalfBath, BsmtHalfBath
         with col7:
-            GrLivArea = st.number_input("Above Ground Living Area (sq ft)", 100, 10000, 1500) 
+            GrLivArea = st.number_input("Living Area (sq ft)", 100, 10000, 1500, help="Above Ground") 
 
         
         with col8:
@@ -748,62 +764,44 @@ processed_features = pipeline.transform(user_input_df)
 #st.write(processed_features)
 
 
-# === House Visualization (Simple Representation) ===
-#with st.expander("📏 House Layout Visualization", expanded=True):
+# === Load Data ===
+@st.cache_data
+def load_data():
+    # Load only the price column for comparison
+    data = pd.read_csv("train.csv", usecols=["SalePrice"])
+    return data
 
-# Load the dataset
-data = pd.read_csv("train.csv")
+data = load_data()
 
-data["HouseAge"] = datetime.datetime.now().year - data["YearBuilt"]
-data["TotalSF"] = data["GrLivArea"] + data["TotalBsmtSF"]
-data["TotalPorchSF"] = data["OpenPorchSF"] + data["EnclosedPorch"] + data["3SsnPorch"] + data["ScreenPorch"]
-data["HasPool"] = data["PoolArea"] > 0
-data["TotalArea"] = data["LotArea"] + data["TotalSF"]
-data["HouseRemodelAge"] = data["YearRemodAdd"] - data["YearBuilt"]
-data["TotalBathrooms"] = data["FullBath"] + 0.5 * data["HalfBath"] + data["BsmtFullBath"] + 0.5 * data["BsmtHalfBath"]
+# === Generate Predicted Prices ===
+if "predicted_prices" not in st.session_state:
+    # Generate predicted prices for comparison (if needed)
+    # Replace this with your actual prediction logic
+    st.session_state.predicted_prices = np.random.normal(200000, 50000, size=len(data))  # Placeholder
 
-# Ensure all expected features are present
-missing_features = set(expected_features) - set(data.columns)
-if missing_features:
-    raise ValueError(f"Missing features after engineering: {missing_features}")
+predicted_prices = st.session_state.predicted_prices
 
-# Keep only the expected features
-data = data[expected_features]
-
-# Preprocess the dataset (if needed)
-processed_data = pipeline.transform(data)
-
-# Generate predicted prices
-predicted_prices = stack_model.predict(processed_data)
-data["PredictedPrice"] = predicted_prices
-
-def calculate_percentile(predicted_price, predicted_prices):
-    """
-    Calculates the exact percentile of the predicted price relative to the dataset.
-    """
-    return percentileofscore(predicted_prices, predicted_price, kind="weak")
-    
-# Function to rank the house price
-def rank_house_price(predicted_price, predicted_prices):
+# === Price Ranking ===
+def rank_house_price(predicted_price, actual_prices):
     """
     Ranks the predicted price by displaying its exact percentile.
     """
+    # Ensure predicted_price is a scalar
     if isinstance(predicted_price, (np.ndarray, list)):
         predicted_price = predicted_price[0]  # Extract the first element if it's an array
-    
-    # Calculate percentile
-    percentile = percentileofscore(predicted_prices, predicted_price, kind="weak")
-    percentile = float(percentile)  # Ensure percentile is a float
-    return f"📊 Your house is in the **{percentile:.2f}th percentile** of Ames, Iowa homes."
 
-def plot_price_distribution(predicted_prices, user_price):
+    # Calculate percentile
+    percentile = percentileofscore(actual_prices, predicted_price, kind="weak")
+    return f"📊 The price of the house is in the **{percentile:.2f}th percentile** of Ames, Iowa homes."
+
+def plot_price_distribution(actual_prices, user_price):
     """
     Plots a histogram of house prices and highlights the user's predicted price.
     """
     plt.figure(figsize=(10, 6))
-    sns.histplot(predicted_prices, kde=True, color="blue", label="House Prices in Iowa")
+    sns.histplot(actual_prices, kde=True, color="blue", label="House Prices in Iowa")
     
-    # Ensure user_price is a scalar (not an array)
+    # Ensure user_price is a scalar
     if isinstance(user_price, (np.ndarray, list)):
         user_price = user_price[0]  # Extract the first element if it's an array
     
@@ -819,8 +817,10 @@ with webcol2:
     webtab1 = st.tabs(["🥇 Price Ranking"])[0]
     with webtab1:
         st.write("Enter house details to estimate the price.")
+        
         # Predict the price (returns an array)
-        predicted_price = stack_model.predict(processed_features)
+        # Replace this with your actual prediction logic
+        predicted_price = stack_model.predict(processed_features)  # Use your actual prediction logic
 
         # Ensure predicted_price is a scalar
         if isinstance(predicted_price, (np.ndarray, list)):
@@ -830,10 +830,9 @@ with webcol2:
         st.success(f"💰 The estimated house price is **${predicted_price:,.2f}**")
 
         # Rank the house by percentile
-        rank = rank_house_price(predicted_price, data["PredictedPrice"])
+        rank = rank_house_price(predicted_price, data["SalePrice"])
         st.success(rank)
-        
 
         # Plot the price distribution
-        plt = plot_price_distribution(data["PredictedPrice"], predicted_price)
+        plt = plot_price_distribution(data["SalePrice"], predicted_price)
         st.pyplot(plt)
