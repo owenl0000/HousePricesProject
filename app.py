@@ -12,7 +12,7 @@ st.set_page_config(layout="wide")
 # Load the trained stacking regressor model from the pickle file
 @st.cache_resource
 def load_model():
-    with open('stacking_model.pkl', 'rb') as f:
+    with open('xgboost_model.pkl', 'rb') as f:
         return pickle.load(f)
 
 stack_model = load_model()
