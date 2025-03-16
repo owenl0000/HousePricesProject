@@ -125,7 +125,7 @@ with webcol1:
             ms_subclass = allowed_subclass_values[allowed_subclass_labels.index(selected_subclass)]
 
         col3, col4 = st.columns(2)    
-        with col3:
+        with col4:
             mszoning_mapping = {
                 "A": "Agriculture",
                 "C": "Commercial",
@@ -141,7 +141,8 @@ with webcol1:
             mszoning_default_index =  mszoning_labels.index("Residential Low Density")
             selected_MSZoning = st.selectbox("Select Zoning", mszoning_labels, index=mszoning_default_index)
             MSZoning = mszoning_values[mszoning_labels.index(selected_MSZoning)]
-        with col4:
+        
+        with col3:
             neighborhood_mapping = {
                 "Blmngtn":"Bloomington Heights",
                 "Blueste": "Bluestem",
@@ -177,7 +178,7 @@ with webcol1:
         
         
         st.divider()
-        st.subheader("Living Area", anchor=False)
+        st.subheader("Living Area", anchor=False, help="Above Ground")
         
         col7, col8, col9 = st.columns(3)
         #will be more specific for these features later
@@ -185,33 +186,33 @@ with webcol1:
         # Total Area(Engineered) = GrLivArea(Any Area that is above ground), TotalBsmtSF
         # TotalBathrooms(Engineered) = BsmtFullBath, FullBath, 0.5 * HalfBath, BsmtHalfBath
         with col7:
-            GrLivArea = st.number_input("Living Area (sq ft)", 100, 10000, 1500, help="Above Ground") 
+            GrLivArea = st.slider("Living Area", 100, 10000, 1500, help="Above Ground (Square Feet)") 
 
         
         with col8:
             if house_style == "1Story" and ms_subclass == 40:
-                FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, GrLivArea-100, 1100)
+                FirstFlrSF = st.slider("First Floor Area", 100, GrLivArea-100, 1100, help="Square Feet")
             elif house_style == "1Story":
                 # For 1-story houses, FirstFlrSF must equal GrLivArea
-                FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, 10000, GrLivArea, disabled=True, help="Change 1-Story to access this value")
+                FirstFlrSF = st.slider("First Floor Area", 100, 10000, GrLivArea, disabled=True, help="Change 1-Story to access this value (Square Feet)")
             else:
                 # For multi-story houses, allow the user to input FirstFlrSF
-                FirstFlrSF = st.number_input("First Floor Area (sq ft)", 100, GrLivArea - 100, 800)
+                FirstFlrSF = st.slider("First Floor Area", 100, GrLivArea - 100, 800, help="Square Feet")
         with col9:
             if house_style == "1Story" and ms_subclass == 40:
-                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, GrLivArea - FirstFlrSF , help="This value is calculated Living Area - First Floor")
+                SecondFlrSF = st.slider("Second Floor Area", 0, 3000, GrLivArea - FirstFlrSF , help="This value is calculated Living Area - First Floor (Square Feet)")
             elif house_style == "1Story":
-                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, 3000, 0, disabled=True, help="This value is calculated Living Area - First Floor")
+                SecondFlrSF = st.slider("Second Floor Area", 0, 3000, 0, disabled=True, help="Change 1-Story to see change of this value (Square Feet)")
             else:
-                SecondFlrSF = st.number_input("Second Floor Area (sq ft)", 0, GrLivArea-FirstFlrSF, GrLivArea - FirstFlrSF, disabled=True, help="This value is calculated Living Area - First Floor")
+                SecondFlrSF = st.slider("Second Floor Area", 0, GrLivArea-FirstFlrSF, GrLivArea - FirstFlrSF, disabled=True, help="This value is calculated Living Area - First Floor (Square Feet)")
                 
 
 
         col10, col11 = st.columns(2)
         with col10:
-            FullBath = st.slider("Number of Full Bathrooms", 0, 3, 1, step=1) 
+            FullBath = st.slider("Full Bathrooms", 0, 3, 1, step=1) 
         with col11:    
-            HalfBath = st.slider("Number of Half Bathrooms", 0, 2, 1, step=1)
+            HalfBath = st.slider("Half Bathrooms", 0, 2, 1, step=1)
         
         st.divider()
         st.subheader("Quality & Condition",divider=False, anchor=False)
@@ -340,7 +341,7 @@ with webcol1:
         bscol1, bscol2, bscol3 = st.columns(3)
         with bscol1:
             #Total Basement Area
-            TotalBsmtSF = st.number_input("Total Basement Area (sq ft)", 0, 7500, 1000)
+            TotalBsmtSF = st.slider("Total Area", 0, 7500, 1000, help="Square Feet")
             #Height of the Basement
             bsmtqual_mapping = {
                 "Ex": "Excellent (100+ inches)",
@@ -372,7 +373,7 @@ with webcol1:
 
         
 
-            selected_bsmtqual = st.selectbox("Height of the Basement", bsmtqual_labels, index=bsmtqual_default_index, help="Enter Total Basement Area to get more options",)
+            selected_bsmtqual = st.selectbox("Basement Height", bsmtqual_labels, index=bsmtqual_default_index, help="Enter Total Basement Area to get more options",)
             BsmtQual = bsmtqual_values[bsmtqual_labels.index(selected_bsmtqual)]
 
             # Display a warning if the selection is invalid
@@ -381,12 +382,9 @@ with webcol1:
             elif TotalBsmtSF > 0 and BsmtQual == "NA":
                 st.warning("You cannot select 'No Basement' when there is a basement. Please choose a valid basement height.")
 
-
-        with bscol3:
-            BsmtFinSF = st.number_input("Basement Finished Area (sq ft)", 0, TotalBsmtSF, min(1000, TotalBsmtSF))
-            BsmtUnfSF = st.number_input("Basement Unfinished Area (sq ft)", 0, TotalBsmtSF-BsmtFinSF, TotalBsmtSF-BsmtFinSF) 
-
         with bscol2:
+            BsmtFinSF = st.slider("Finished Area", 0, TotalBsmtSF, min(1000, TotalBsmtSF), help="Square Feet")
+
             bsmtfintype_mapping = {
                 "GLQ": "Good Living Quarters",
                 "ALQ": "Average Living Quarters",
@@ -413,9 +411,12 @@ with webcol1:
             else:
                 bsmtfintype_default_index = bsmtfintype_labels.index("Good Living Quarters")
             
-            selected_bsmtfintype = st.selectbox("Rating of Basement Area", bsmtfintype_labels, index=bsmtfintype_default_index, help="Enter Total Basement Area to get more options",)
+            selected_bsmtfintype = st.selectbox("Rating of Total Area", bsmtfintype_labels, index=bsmtfintype_default_index, help="Enter Total Basement Area to get more options",)
             BsmtFinType1 = bsmtfintype_values[bsmtfintype_labels.index(selected_bsmtfintype)]
-
+        
+        with bscol3:
+            BsmtUnfSF = st.slider("Unfinished Area", 0, TotalBsmtSF-BsmtFinSF + 1000, TotalBsmtSF-BsmtFinSF, disabled=True, help="Total Basement Area - Basement Finished Area (Square Feet)") 
+            
             bsmtexposure_mapping = {
                 "Gd": "Good Exposure",
                 "Av": "Average Exposure",
@@ -440,20 +441,20 @@ with webcol1:
             else:
                 bsmtexposure_default_index = bsmtexposure_labels.index("No Exposure")
 
-            selected_bsmtexposure = st.selectbox("Rating of Basement Exposure", bsmtexposure_labels, index=bsmtexposure_default_index, help="Walkout or garden level basement walls. Enter Total Basement Area to get more options")
+            selected_bsmtexposure = st.selectbox("Rating of Exposure", bsmtexposure_labels, index=bsmtexposure_default_index, help="Walkout or garden level basement walls. Enter Total Basement Area to get more options")
             BsmtExposure = bsmtexposure_values[bsmtexposure_labels.index(selected_bsmtexposure)]
 
         bscol4, bscol5 = st.columns(2)
         with bscol4:
             if TotalBsmtSF == 0:
-                BsmtFullBath = st.number_input("Full Bathrooms in Basement", 0, 0, 0, step=0)
+                BsmtFullBath = st.slider("Basement Full Bathrooms", 0, 0, 0, step=0)
             else:
-                BsmtFullBath = st.number_input("Full Bathrooms in Basement", 0, 3, 1, step=1)
+                BsmtFullBath = st.slider("Basement Full Bathrooms", 0, 3, 1, step=1)
         with bscol5:
             if TotalBsmtSF == 0:
-                BsmtHalfBath = st.number_input("Half Bathrooms in Basement", 0, 0, 0, step=0)
+                BsmtHalfBath = st.slider("Basement Half Bathrooms", 0, 0, 0, step=0)
             else:
-                BsmtHalfBath = st.number_input("Half Bathrooms in Basement", 0, 2, 0, step=1)
+                BsmtHalfBath = st.slider("Basement Half Bathrooms", 0, 2, 0, step=1)
 
         if TotalBsmtSF == 0:
             st.write("To get more options, please enter a value for Total Basement Area.")
@@ -484,26 +485,128 @@ with webcol1:
 
         st.divider()
 
+    
+    ms_subclass_stats = {
+        20: {"TotRmsAbvGrd": {"min": 2, "max": 11, "mean": 6.04},
+            "BedroomAbvGrd": {"min": 0, "max": 4, "mean": 2.73},
+            "KitchenAbvGr": {"min": 1, "max": 2, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 3, "mean": 0.59}},
+        30: {"TotRmsAbvGrd": {"min": 3, "max": 7, "mean": 4.86},
+            "BedroomAbvGrd": {"min": 1, "max": 4, "mean": 2.07},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.26}},
+        40: {"TotRmsAbvGrd": {"min": 4, "max": 6, "mean": 4.75},
+            "BedroomAbvGrd": {"min": 0, "max": 3, "mean": 2.00},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 1, "mean": 0.50}},
+        45: {"TotRmsAbvGrd": {"min": 4, "max": 6, "mean": 4.75},
+            "BedroomAbvGrd": {"min": 1, "max": 3, "mean": 2.08},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 1, "mean": 0.25}},
+        50: {"TotRmsAbvGrd": {"min": 3, "max": 12, "mean": 6.66},
+            "BedroomAbvGrd": {"min": 1, "max": 5, "mean": 3.06},
+            "KitchenAbvGr": {"min": 1, "max": 2, "mean": 1.01},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.54}},
+        60: {"TotRmsAbvGrd": {"min": 5, "max": 12, "mean": 7.90},
+            "BedroomAbvGrd": {"min": 2, "max": 5, "mean": 3.36},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 3, "mean": 0.89}},
+        70: {"TotRmsAbvGrd": {"min": 6, "max": 11, "mean": 7.60},
+            "BedroomAbvGrd": {"min": 2, "max": 5, "mean": 3.40},
+            "KitchenAbvGr": {"min": 1, "max": 2, "mean": 1.03},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.68}},
+        75: {"TotRmsAbvGrd": {"min": 6, "max": 12, "mean": 8.81},
+            "BedroomAbvGrd": {"min": 2, "max": 5, "mean": 3.63},
+            "KitchenAbvGr": {"min": 1, "max": 3, "mean": 1.13},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.94}},
+        80: {"TotRmsAbvGrd": {"min": 3, "max": 11, "mean": 6.29},
+            "BedroomAbvGrd": {"min": 0, "max": 5, "mean": 2.95},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 3, "mean": 0.79}},
+        85: {"TotRmsAbvGrd": {"min": 4, "max": 7, "mean": 5.45},
+            "BedroomAbvGrd": {"min": 1, "max": 4, "mean": 2.50},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.40}},
+        90: {"TotRmsAbvGrd": {"min": 4, "max": 12, "mean": 7.69},
+            "BedroomAbvGrd": {"min": 0, "max": 6, "mean": 3.56},
+            "KitchenAbvGr": {"min": 0, "max": 2, "mean": 1.83},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.13}},
+        120: {"TotRmsAbvGrd": {"min": 3, "max": 7, "mean": 5.28},
+            "BedroomAbvGrd": {"min": 0, "max": 3, "mean": 1.74},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.76}},
+        160: {"TotRmsAbvGrd": {"min": 4, "max": 10, "mean": 5.65},
+            "BedroomAbvGrd": {"min": 2, "max": 5, "mean": 2.62},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 1, "mean": 0.29}},
+        180: {"TotRmsAbvGrd": {"min": 3, "max": 5, "mean": 3.80},
+            "BedroomAbvGrd": {"min": 1, "max": 2, "mean": 1.40},
+            "KitchenAbvGr": {"min": 1, "max": 1, "mean": 1.00},
+            "Fireplaces": {"min": 0, "max": 0, "mean": 0.00}},
+        190: {"TotRmsAbvGrd": {"min": 5, "max": 14, "mean": 7.33},
+            "BedroomAbvGrd": {"min": 2, "max": 8, "mean": 3.40},
+            "KitchenAbvGr": {"min": 1, "max": 3, "mean": 1.60},
+            "Fireplaces": {"min": 0, "max": 2, "mean": 0.43}},
+    } 
+    
+    if ms_subclass in ms_subclass_stats:
+        tot_rms_stats = ms_subclass_stats[ms_subclass]["TotRmsAbvGrd"]
+        bedroom_stats = ms_subclass_stats[ms_subclass]["BedroomAbvGrd"]
+        kitchen_stats = ms_subclass_stats[ms_subclass]["KitchenAbvGr"]
+        fireplace_stats = ms_subclass_stats[ms_subclass]["Fireplaces"]
+    else:
+        # Default values if MSSubClass is not in the dictionary
+        tot_rms_stats = {"min": 2, "max": 14, "mean": 6}
+        bedroom_stats = {"min": 0, "max": 8, "mean": 3}
+        kitchen_stats = {"min": 0, "max": 3, "mean": 1}
+        fireplace_stats = {"min": 0, "max": 3, "mean": 0}
+
     # === Interior & Features ===
     # KitchenAbvGr, KitchenQual, Fireplaces, FireplaceQu, BedroomAbvGr, TotRmsAbvGrd, 
     # MasVnrType, MasVnrArea, ExterQual, Heating, HeatingQc, CentralAir
     with tab3:
-        st.subheader("Rooms", divider="grey" , anchor=False)
+
+        
+
+
+        st.subheader("Rooms", divider="grey" , anchor=False, help="Above Ground/Basement Level")
         rcol1, rcol2 = st.columns(2)
         with rcol1:
             # BedroomAbvGr - Number of bedrooms above basement level
-            BedroomAbvGr = st.slider("Number of Bedrooms Above Basement Level", min_value=0, max_value=8, value=2, step=1)
+            BedroomAbvGr = st.slider(
+                "Number of Bedrooms",
+                min_value=bedroom_stats["min"],
+                max_value=bedroom_stats["max"],
+                value=int(bedroom_stats["mean"]),  # Default to the mean value
+                step=1,
+                help="Above Ground/Basement Level"
+            ) 
+
         with rcol2:
             # TotRmsAbvGrd - Total rooms above grade
-            TotRmsAbvGrd = st.slider("Total Rooms Above Ground", min_value=2, max_value=14, value=6, step=1)
-        
+            TotRmsAbvGrd = st.slider(
+                "Total Rooms",
+                min_value=tot_rms_stats["min"],
+                max_value=tot_rms_stats["max"],
+                value=int(tot_rms_stats["mean"]),  # Default to the mean value
+                step=1,
+                help="Above Ground/Basement Level"
+                
+            )
+
         st.subheader("Kitchen", divider="grey" , anchor=False)
         #Kitchen Above Grade
         #Kitchen Quality
         kcol1, kcol2 = st.columns(2)
         
         with kcol1:
-            KitchenAbvGr = st.slider("Number of Kitchen", 0, 3, 1)
+            KitchenAbvGr = st.slider(
+            "Number of Kitchens",
+            min_value=kitchen_stats["min"],
+            max_value=kitchen_stats["max"],
+            value=int(kitchen_stats["mean"]),  # Default to the mean value
+            step=1
+        )
         
         with kcol2:
             kitchenqual_mapping = {
@@ -581,7 +684,13 @@ with webcol1:
             if FireplaceQu == 'NA':
                 Fireplaces = st.slider("Number of Fireplaces", 0, 3, 0, disabled=True)
             else:
-                Fireplaces = st.slider("Number of Fireplaces", 0, 3, 1)
+                Fireplaces = st.slider(
+                    "Number of Fireplaces",
+                    min_value=fireplace_stats["min"],
+                    max_value=fireplace_stats["max"],
+                    value=int(fireplace_stats["mean"]),  # Default to the mean value
+                    step=1
+                )
             
 
         st.subheader("Masonry Veneer Type", divider="red", anchor=False)
