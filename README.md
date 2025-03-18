@@ -56,6 +56,7 @@ The app uses a stacking ensemble model trained with multiple regressors, includi
 - Voting Regressor
 
 But due to limited computing power for deployment, the deployed version uses only XGBoost Regressor
+
 To switch between XGBoost and Stacking Regressor for local machine switch the pkl files from stacking_model.pkl and xgboost_model.pkl
 
 
