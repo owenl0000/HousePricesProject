@@ -55,5 +55,7 @@ The app uses a stacking ensemble model trained with multiple regressors, includi
 - Stacking Regressor
 - Voting Regressor
 
+But for deployment and due to limited computing power, the app uses XGBoost Regressor
+
 
 
